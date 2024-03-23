@@ -29,3 +29,33 @@ let http_request: Vec<_> = buf_reader
 ```rust
 println!("Request: {:#?}", http_request);
 ```
+
+### Commit 2 Reflection Notes
+![Commit 2 screen capture](/assets/images/commit2.png)
+
+Method `handle_connection` mengalami beberapa penambahan kode pada commit ke-2 ini. Penambahan kode tersebut berfungsi agar method juga dapat mengirim response ke client terhadap HTTP request yang diterima. Proses ini dibuat dengan cara sebagai berikut.
+1. Membuat variable `status_line` yang berisi status line HTTP dan menyatakan bahwa request berhasil diproses dengan kode "200 OK".
+```rust
+let status_line = "HTTP/1.1 200 OK";
+```
+
+2. Membaca content dari file `hello.html` dan mengonversinya menjadi string untuk kemudian disimpan di variable `contents`.
+```rust
+let contents = fs::read_to_string("hello.html").unwrap();
+```
+
+3. Menghitung panjang `contents` untuk disertakan dalam header pada response.
+```rust
+let length = contents.len();
+```
+
+4. Membuat HTTP response yang lengkap dimana mencakup status line, header, dan contents. 
+```rust
+let response =
+        format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
+```
+
+5. Response yang telah dibuat kemudian dikirim kembali ke client melalui stream yang sama.
+```rust
+stream.write_all(response.as_bytes()).unwrap();
+```
