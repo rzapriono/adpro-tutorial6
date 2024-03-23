@@ -120,3 +120,6 @@ fn handle_connection(mut stream: TcpStream) {
     stream.write_all(response.as_bytes()).unwrap();
 }
 ```
+
+### Commit 4 Reflection Notes
+Setelah memodifikasi block conditional (if else) menjadi match dalam method `handle_connection`, kita dapat membandingkan `request_line` dengan pola yang ditentukan. Sebagai contoh single-threaded, endpoint `/sleep` bisa ditambahkan sehingga menyebabkan delay atau penundaan process selama 10 detik menggunakan `thread::sleep(Duration::from_secs(10))`. Dalam skenario ini, akses secara bersamaan ke` 127.0.0.1` dan `127.0.0.1/sleep` akan mengakibatkan delay pada response dari `/sleep`, yang juga menunda response untuk request lain. Hal ini terjadi karena thread sleep menghentikan eksekusi thread untuk sementara waktu. Oleh karena itu, penggunaan single-threaded bisa mengakibatkan keterlambatan dan penundaan dalam memproses request di server.
