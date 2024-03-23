@@ -126,3 +126,6 @@ Setelah memodifikasi block conditional (if else) menjadi match dalam method `han
 
 ### Commit 5 Reflection Notes
 Kita dapat membuat sistem multithreading dengan menciptakan sebuah ThreadPool. ThreadPool merupakan kumpulan thread di mana setiap thread siap untuk menangani sebuah request. Kemudian, kita memerlukan sebuah Worker yang memiliki id dan threadnya masing-masing pada program untuk menerima dan menjalankan pekerjaan yang lebih spesifik. Kita dapat menghubungkan ThreadPool dan Worker dengan membuat kode baru yang memungkinkan ThreadPool untuk mengirim pesan atau sinyal melalui sender ke receiver yang telah di-clone dan diberikan kepada setiap Worker. Dengan melakukan hal ini, ketika ThreadPool menerima sebuah request, sinyal akan dikirim dan menugaskan request tersebut ke Worker yang valid yang kemudian akan memproses request tersebut. Worker kemudian mengunci receiver untuk memproses data sampai selesai, dan baru setelah itu kunci akan dibuka yang memungkinkan Worker lain untuk menerima pekerjaan lain.
+
+### Commit Bonus Reflection Notes
+Penggunaan `build` dalam melakukan pembuatan thread lebih menjamin jika dilihat dari segi kemampuan error handling dibandingkan dengan penggunaan `new`, karena jika jumlah yang diberikan <= 0 maka program akan me-return error.
