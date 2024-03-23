@@ -55,7 +55,68 @@ let response =
         format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
 ```
 
-5. Response yang telah dibuat kemudian dikirim kembali ke client melalui stream yang sama.
+5. Response yang telah dibuat kemudian dikirim kembali ke client melalui `stream` yang sama.
 ```rust
 stream.write_all(response.as_bytes()).unwrap();
+```
+
+### Commit 3 Reflection Notes
+![Commit 3 screen capture](/assets/images/commit3.png)
+
+Pada awalnya, website memberikan response yang sama terhadap semua request dari client, yakni dengan mereturn content HTML dari file `hello.html`. Sekarang, website perlu menangani respons yang berbeda, sehingga perlu dilakukan pemeriksaan terhadap `request_line` untuk memisahkan dan memberikan response yang sesuai. 
+
+Perubahan pada commit ini terdapat pada method `handle_connection`, yang isinya menjadi seperti ini:
+```rust
+fn handle_connection(mut stream: TcpStream) {
+    let buf_reader = BufReader::new(&mut stream);
+    let request_line = buf_reader.lines().next().unwrap().unwrap();
+
+    if request_line == "GET / HTTP/1.1" {
+        let status_line = "HTTP/1.1 200 OK";
+        let contents = fs::read_to_string("hello.html").unwrap();
+        let length = contents.len();
+
+        let response = format!(
+            "{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}"
+        );
+
+        stream.write_all(response.as_bytes()).unwrap();
+    } else {
+        let status_line = "HTTP/1.1 404 NOT FOUND";
+        let contents = fs::read_to_string("404.html").unwrap();
+        let length = contents.len();
+
+        let response = format!(
+            "{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}"
+        );
+
+        stream.write_all(response.as_bytes()).unwrap();
+    }
+}
+```
+
+Pada kode tersebut, response dibagi menjadi 2 kondisi, yakni ketika menuju ke path `/` dan ke path lain selain path tersebut. Jika request_line sesuai dengan GET request dari path yang diinginkan (`/`), content dari file `hello.html` akan dikirimkan sebagai response. Jika tidak sesuai (selain path `/`), maka content dari `file 404.html` akan dikirim sebagai response dan menandakan bahwa path yang direquest tidak ditemukan.
+
+Setelah membagi menjadi 2 kondisi, saya menyadari bahwa diperlukan refactoring untuk kode yang telah dibuat. Refactoring diperlukan karena conditional block (if-else) pada kode tersebut mengulangi proses pembacaan file HTML dan penulisan contentnya ke dalam `stream`. Seharusnya, conditional (if-else) bisa diterapkan hanya untuk mengecek `request_line`. Kemudian, untuk membaca file dan mengirim contentnya ke dalam `stream` dilakukan setelah pengecekan berdasarkan conditional tersebut sesuai dengan value dari `request_line`, sehingga kode menjadi lebih terstruktur dan tidak memiliki duplikasi.
+
+Method `handle_connection` setelah dilakukan refactoring akan menjadi seperti ini:
+```rust
+fn handle_connection(mut stream: TcpStream) {
+    let buf_reader = BufReader::new(&mut stream);
+    let request_line = buf_reader.lines().next().unwrap().unwrap();
+
+    let (status_line, filename) = if request_line == "GET / HTTP/1.1" {
+        ("HTTP/1.1 200 OK", "hello.html")
+    } else {
+        ("HTTP/1.1 404 NOT FOUND", "404.html")
+    };
+
+    let contents = fs::read_to_string(filename).unwrap();
+    let length = contents.len();
+
+    let response =
+        format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
+
+    stream.write_all(response.as_bytes()).unwrap();
+}
 ```
